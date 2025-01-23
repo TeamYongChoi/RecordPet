@@ -1,4 +1,4 @@
-package teamyc.recordpet.domain.symptom.entitiy;
+package teamyc.recordpet.domain.healthrecord.entitiy;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,10 +7,12 @@ import lombok.NoArgsConstructor;
 import teamyc.recordpet.domain.pet.entity.Pet;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Symptom {
+public class HealthRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,14 +22,15 @@ public class Symptom {
     @JoinColumn(name = "pet_id")
     private Pet pet;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String description;
+    private String title;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "health_record_id")
+    private List<HealthEvent> events = new ArrayList<>();
 
     @Builder
-    public Symptom(LocalDateTime createdAt, LocalDateTime updatedAt, String description) {
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.description = description;
+    public HealthRecord(String title, List<HealthEvent> events) {
+        this.title = title;
+        this.events = events;
     }
 }
