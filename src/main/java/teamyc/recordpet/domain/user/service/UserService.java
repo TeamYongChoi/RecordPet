@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import teamyc.recordpet.domain.user.dto.GetUserProfileResponse;
 import teamyc.recordpet.domain.user.dto.UserChangePasswordRequest;
 import teamyc.recordpet.domain.user.dto.UserChangePasswordResponse;
 import teamyc.recordpet.domain.user.dto.UserEditProfileRequest;
@@ -137,6 +138,16 @@ public class UserService {
         userRepository.save(updatedUser);
 
         return new UserEditProfileResponse();
+    }
+
+    public GetUserProfileResponse getProfile(Long userId) {
+        User user = userRepository.findByUserId(userId)
+            .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
+
+        return GetUserProfileResponse.builder()
+            .nickname(user.getNickname())
+            .profileImageUrl(user.getUserProfileImageUrl())
+            .build();
     }
 
     private void checkDuplicateEmail(UserSignupRequest req) {
