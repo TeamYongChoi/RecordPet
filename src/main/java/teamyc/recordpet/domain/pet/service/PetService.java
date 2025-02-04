@@ -48,6 +48,7 @@ public class PetService {
 
         return PetResponse.fromEntity(savedPet);
     }
+
     //수정
     @Transactional
     public PetUpdateResponse PetProfileUpdate(long id, PetUpdateRequest req, MultipartFile profileImage) {

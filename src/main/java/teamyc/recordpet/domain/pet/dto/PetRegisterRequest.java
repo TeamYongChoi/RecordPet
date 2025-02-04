@@ -8,6 +8,7 @@ import teamyc.recordpet.domain.pet.entity.Gender;
 @Getter
 @AllArgsConstructor
 public class PetRegisterRequest {
+
     private String name;
     private int age;
     private Gender gender;
