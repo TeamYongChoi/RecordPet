@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import teamyc.recordpet.domain.user.dto.UserChangePasswordRequest;
 import teamyc.recordpet.domain.user.dto.UserChangePasswordResponse;
+import teamyc.recordpet.domain.user.dto.UserEditProfileRequest;
+import teamyc.recordpet.domain.user.dto.UserEditProfileResponse;
 import teamyc.recordpet.domain.user.dto.UserSignupRequest;
 import teamyc.recordpet.domain.user.dto.UserSignupResponse;
 import teamyc.recordpet.domain.user.service.UserService;
@@ -47,5 +51,12 @@ public class UserController {
     public CustomResponse<UserChangePasswordResponse> changePassword(@PathVariable Long userId,
         @RequestBody UserChangePasswordRequest req) {
         return CustomResponse.success(userService.changePassword(userId, req));
+    }
+
+    @PatchMapping("/{userId}/edit-profile")
+    public CustomResponse<UserEditProfileResponse> editProfile(@PathVariable Long userId,
+        @RequestPart("data") UserEditProfileRequest req,
+        @RequestPart("image") MultipartFile multipartFile) {
+        return CustomResponse.success(userService.editProfile(userId, req, multipartFile));
     }
 }
