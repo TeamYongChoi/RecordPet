@@ -1,5 +1,7 @@
 package teamyc.recordpet.domain.healthrecord.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.RepositoryDefinition;
 import org.springframework.data.repository.query.Param;
@@ -19,4 +21,8 @@ public interface HealthRecordRepository {
     List<HealthRecord> findByMonthAndPetId(@Param("petId") Long petId,
                                            @Param("year") int year,
                                            @Param("month") int month);
+
+    @Query("SELECT hr FROM HealthRecord hr where hr.pet.id = :petId")
+    Page<HealthRecord> findAllByPetId(@Param("petId") Long petId,
+                           Pageable pageable);
 }
