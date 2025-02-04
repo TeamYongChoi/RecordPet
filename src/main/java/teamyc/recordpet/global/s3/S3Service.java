@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import teamyc.recordpet.global.exception.GlobalException;
 
@@ -87,6 +89,21 @@ public class S3Service {
                 .key(folderName + "/" + fileName)
                 .build()
         );
+    }
+
+    private boolean existFile(String fileName, String folderName) {
+        String fileKey = folderName + "/" + fileName;
+        try {
+            s3Client.headObject(
+                HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build()
+            );
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
+        return true;
     }
 
     private String getPublicUrl(String fileName) {
