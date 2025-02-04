@@ -30,12 +30,16 @@ public class User {
 
     @Enumerated(value = EnumType.STRING)
     private Role role;
+    private String userProfileImageUrl;
 
     @Builder
-    private User(String nickname, String email, String password, Role role) {
+    public User(Long userId, String nickname, String email, String password, Role role,
+        String userProfileImageUrl) {
+        this.userId = userId;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.userProfileImageUrl = userProfileImageUrl;
     }
 }
