@@ -104,10 +104,12 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
             .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
 
-        // 사용자의 기존 프로필 사진이 등록돼있는 경우
-        if (!multipartFile.isEmpty() && user.getUserProfileImageUrl() != null) {
-            System.out.println(user.getUserProfileImageUrl());
-            s3Service.deleteFile(user.getUserProfileImageUrl());
+        // multipartFile이 비어있지 않은 경우 -> 프로필 이미지 업로드 하는 경우
+        if (!multipartFile.isEmpty()) {
+            // 이미 유저가 기존 프로필 이미지를 가지고 있는 경우
+            if (user.getUserProfileImageUrl() != null) {
+                s3Service.deleteFile(user.getUserProfileImageUrl());
+            }
             String newProfileImageUrl = uploadProfileImage(multipartFile);
 
             User updatedUser = User.builder()
@@ -124,15 +126,14 @@ public class UserService {
             return new UserEditProfileResponse();
         }
 
-        // 기존 프로필이 없는 경우
-        String newProfileImageUrl = uploadProfileImage(multipartFile);
+        // multipartFile이 비어있는 경우 -> 프로필 이미지 업로드 안 하는 경우
         User updatedUser = User.builder()
             .userId(userId)
             .nickname(req.getNickname())
             .email(user.getEmail())
             .password(user.getPassword())
             .role(user.getRole())
-            .userProfileImageUrl(newProfileImageUrl)
+            .userProfileImageUrl(user.getUserProfileImageUrl())
             .build();
 
         userRepository.save(updatedUser);
