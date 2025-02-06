@@ -24,9 +24,12 @@ public class HealthRecordService {
 
     public void save(Long petId, HealthRecordCreateRequest request) {
 
-        if (!petRepository.existsById(petId)) {
-            throw new GlobalException(NOT_FOUND_PET_PROFILE);
-        }
+        Pet pet = petRepository.findById(petId).orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
+
+        HealthRecord healthRecord = HealthRecord.builder()
+                .pet(pet)
+                .title(request.title())
+                .build();
 
         healthRecordRepository.save(request.toEntity());
     }
