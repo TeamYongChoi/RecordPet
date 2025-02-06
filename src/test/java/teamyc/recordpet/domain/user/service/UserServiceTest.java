@@ -3,6 +3,7 @@ package teamyc.recordpet.domain.user.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -85,10 +86,12 @@ class UserServiceTest extends UserTest {
                 .nickname(TEST_USER_NAME)
                 .build();
 
-            given(userRepository.findByUserId(anyLong())).willReturn(
-                Optional.ofNullable(TEST_USER));
             MockMultipartFile mockMultipartFile = new MockMultipartFile("image", "", "",
                 new byte[0]);
+
+            given(userRepository.findByUserId(anyLong())).willReturn(
+                Optional.ofNullable(TEST_USER));
+            given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
@@ -110,7 +113,8 @@ class UserServiceTest extends UserTest {
 
             given(userRepository.findByUserId(anyLong())).willReturn(
                 Optional.ofNullable(TEST_USER));
-            given(s3Service.uploadImage(any(), any())).willReturn(anyString());
+            given(s3Service.uploadImage(any(), any())).willReturn(TEST_UPDATED_USER_PROFILE_IMAGE);
+            given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
@@ -134,7 +138,9 @@ class UserServiceTest extends UserTest {
 
             given(userRepository.findByUserId(anyLong())).willReturn(
                 Optional.ofNullable(TEST_NO_PROFILE_IMAGE_USER));
-            given(s3Service.uploadImage(any(), any())).willReturn(anyString());
+            given(s3Service.uploadImage(any(), eq("user-profile-images"))).willReturn(
+                TEST_UPDATED_USER_PROFILE_IMAGE);
+            given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
