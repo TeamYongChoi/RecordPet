@@ -14,10 +14,12 @@ public interface HealthRecordRepository {
 
     void save(HealthRecord request);
 
-    @Query("SELECT hr FROM HealthRecord hr JOIN hr.events e " +
-            "WHERE hr.pet.id = :petId " +
-            "AND FUNCTION('YEAR', e.occurrenceTime) = :year " +
-            "AND FUNCTION('MONTH', e.occurrenceTime) = :month")
+    @Query("SELECT hr FROM health_record hr " +
+       "JOIN FETCH hr.pet " +
+       "LEFT JOIN FETCH hr.events e " +
+       "WHERE hr.pet.id = :petId " +
+       "AND FUNCTION('YEAR', e.occurrenceTime) = :year " +
+       "AND FUNCTION('MONTH', e.occurrenceTime) = :month")
     List<HealthRecord> findByMonthAndPetId(@Param("petId") Long petId,
                                            @Param("year") int year,
                                            @Param("month") int month);
