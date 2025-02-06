@@ -1,18 +1,18 @@
 package teamyc.recordpet.domain.healthrecord.entitiy;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import teamyc.recordpet.domain.pet.entity.Pet;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "health_record")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class HealthRecord {
 
     @Id
@@ -25,13 +25,13 @@ public class HealthRecord {
 
     private String title;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "health_record_id")
+    @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonManagedReference
     private List<HealthEvent> events = new ArrayList<>();
 
-    @Builder
-    public HealthRecord(String title, List<HealthEvent> events) {
-        this.title = title;
-        this.events = events;
+    public void addEvent(HealthEvent event) {
+        events.add(event);
+        event.setHealthRecord(this);  // 양방향 관계 설정
     }
 }

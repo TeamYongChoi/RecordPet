@@ -24,7 +24,9 @@ public interface HealthRecordRepository {
                                            @Param("year") int year,
                                            @Param("month") int month);
 
-    @Query("SELECT hr FROM HealthRecord hr where hr.pet.id = :petId")
+    @Query("SELECT hr FROM health_record hr where hr.pet.id = :petId")
     Page<HealthRecord> findAllByPetId(@Param("petId") Long petId,
                            Pageable pageable);
+
+    void deleteAll();
 }
