@@ -46,7 +46,7 @@ public class UserService {
             throw new GlobalException(UNAUTHORIZED_EMAIL);
         }
         // 닉네임 중복 체크
-        checkDuplicateNickname(req);
+        checkDuplicateNickname(req.getNickname());
         // 비밀번호 암호화
         String pw = passwordEncoder.encode(req.getPassword());
 
@@ -100,6 +100,8 @@ public class UserService {
         if (req.getNickname() == null) {
             throw new GlobalException(NOT_ACCEPTABLE_NICKNAME_BLANK);
         }
+
+        checkDuplicateNickname(req.getNickname());
 
         User user = userRepository.findByUserId(userId)
             .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
@@ -157,8 +159,8 @@ public class UserService {
         }
     }
 
-    private void checkDuplicateNickname(UserSignupRequest req) {
-        if (userRepository.existsByNickname(req.getNickname())) {
+    private void checkDuplicateNickname(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
             throw new GlobalException(DUPLICATE_USER_NICKNAME);
         }
     }
