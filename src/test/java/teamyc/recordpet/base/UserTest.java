@@ -13,23 +13,23 @@ public class UserTest {
     protected String TEST_UPDATED_USER_PROFILE_IMAGE = "test_updated_image_url";
 
     protected User TEST_USER = User.builder()
-        .userId(TEST_USER_ID)
+        .id(TEST_USER_ID)
         .nickname(TEST_USER_NAME)
         .email(TEST_USER_EMAIL)
         .password(TEST_USER_PASSWORD)
-        .userProfileImageUrl(TEST_USER_PROFILE_IMAGE)
+//        .userProfileImageUrl(TEST_USER_PROFILE_IMAGE)
         .build();
 
     protected User TEST_UPDATED_USER = User.builder()
-        .userId(TEST_USER_ID)
+        .id(TEST_USER_ID)
         .nickname(TEST_USER_NAME)
         .email(TEST_USER_EMAIL)
         .password(TEST_USER_NEXT_PASSWORD)
-        .userProfileImageUrl(TEST_UPDATED_USER_PROFILE_IMAGE)
+//        .userProfileImageUrl(TEST_UPDATED_USER_PROFILE_IMAGE)
         .build();
 
     protected User TEST_NO_PROFILE_IMAGE_USER = User.builder()
-        .userId(TEST_USER_ID)
+        .id(TEST_USER_ID)
         .nickname(TEST_USER_NAME)
         .email(TEST_USER_EMAIL)
         .password(TEST_USER_PASSWORD)
