@@ -23,7 +23,7 @@ public class UserSignupResponse {
 
     public static UserSignupResponse fromEntity(User user) {
         return UserSignupResponse.builder()
-            .userId(user.getUserId())
+            .userId(user.getId())
             .email(user.getEmail())
             .nickname(user.getNickname())
             .role(user.getRole())

@@ -7,10 +7,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import teamyc.recordpet.global.image.entity.ProfileImage;
 
 @Entity
 @Table(name = "user")
@@ -20,7 +23,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column(nullable = false)
     private String nickname;
@@ -30,16 +33,23 @@ public class User {
 
     @Enumerated(value = EnumType.STRING)
     private Role role;
-    private String userProfileImageUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "profile_image_id")
+    private ProfileImage profileImage;
 
     @Builder
-    public User(Long userId, String nickname, String email, String password, Role role,
-        String userProfileImageUrl) {
-        this.userId = userId;
+    public User(Long id, String nickname, String email, String password, Role role,
+        ProfileImage profileImage) {
+        this.id = id;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
         this.role = role;
-        this.userProfileImageUrl = userProfileImageUrl;
+        this.profileImage = profileImage;
+    }
+
+    public String getProfileUrl() {
+        return this.getProfileImage().getImageUrl();
     }
 }

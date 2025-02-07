@@ -24,6 +24,9 @@ import teamyc.recordpet.domain.user.entity.User;
 import teamyc.recordpet.domain.user.repository.UserRepository;
 import teamyc.recordpet.global.SendMailResponse;
 import teamyc.recordpet.global.exception.GlobalException;
+import teamyc.recordpet.global.image.ProfileImageRepository;
+import teamyc.recordpet.global.image.entity.ProfileImage;
+import teamyc.recordpet.global.image.entity.Type;
 import teamyc.recordpet.global.mail.ConfirmMailResponse;
 import teamyc.recordpet.global.mail.EmailVerifyRequest;
 import teamyc.recordpet.global.mail.service.EmailAuthService;
@@ -37,20 +40,22 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailAuthService emailAuthService;
     private final S3Service s3Service;
+    private final ProfileImageRepository profileImageRepository;
 
     public UserSignupResponse signup(UserSignupRequest req) {
-        // 중복 이메일 체크 (이미 가입된 사람인지 체크)
         checkDuplicateEmail(req);
-        // 이메일 인증 완료 여부 체크
+
         if (!emailAuthService.findById(req.getEmail()).isChecked()) {
             throw new GlobalException(UNAUTHORIZED_EMAIL);
         }
-        // 닉네임 중복 체크
+
         checkDuplicateNickname(req.getNickname());
-        // 비밀번호 암호화
+
         String pw = passwordEncoder.encode(req.getPassword());
 
-        User user = req.toEntity(pw);
+        ProfileImage profileImage = profileImageRepository.findBasicImage(Type.USER);
+
+        User user = req.toEntity(pw, profileImage);
         userRepository.save(user);
 
         return UserSignupResponse.fromEntity(user);
@@ -71,7 +76,7 @@ public class UserService {
         if (req.getCurrentPassword() == null || req.getNextPassword() == null) {
             throw new GlobalException(NOT_ACCEPTABLE_PASSWORD_BLANK);
         }
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
 
         if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
@@ -81,12 +86,12 @@ public class UserService {
         String newPassword = passwordEncoder.encode(req.getNextPassword());
 
         User updateUser = User.builder()
-            .userId(userId)
+            .id(userId)
             .nickname(user.getNickname())
             .email(user.getEmail())
             .password(newPassword)
             .role(user.getRole())
-            .userProfileImageUrl(user.getUserProfileImageUrl())
+            .profileImage(user.getProfileImage())
             .build();
 
         userRepository.save(updateUser);
@@ -103,24 +108,31 @@ public class UserService {
 
         checkDuplicateNickname(req.getNickname());
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
 
         // multipartFile이 비어있지 않은 경우 -> 프로필 이미지 업로드 하는 경우
         if (!multipartFile.isEmpty()) {
-            // 이미 유저가 기존 프로필 이미지를 가지고 있는 경우
-            if (user.getUserProfileImageUrl() != null) {
-                s3Service.deleteFile(user.getUserProfileImageUrl());
+            // 기본 프로필이 아닌 다른 프로필을 이전에 등록한 경우
+            if (!user.getProfileImage().isBasic()) {
+                s3Service.deleteFile(user.getProfileImage().getImageUrl());
             }
             String newProfileImageUrl = uploadProfileImage(multipartFile);
+            ProfileImage updatedProfileImage = ProfileImage.builder()
+                .type(Type.USER)
+                .isBasic(false)
+                .imageUrl(newProfileImageUrl)
+                .build();
+
+            ProfileImage savedImage = profileImageRepository.save(updatedProfileImage);
 
             User updatedUser = User.builder()
-                .userId(userId)
+                .id(userId)
                 .nickname(req.getNickname())
                 .email(user.getEmail())
                 .password(user.getPassword())
                 .role(user.getRole())
-                .userProfileImageUrl(newProfileImageUrl)
+                .profileImage(savedImage)
                 .build();
 
             userRepository.save(updatedUser);
@@ -128,14 +140,14 @@ public class UserService {
             return new UserEditProfileResponse();
         }
 
-        // multipartFile이 비어있는 경우 -> 프로필 이미지 업로드 안 하는 경우
+        // multipartFile이 비어있는 경우 -> 프로필 이미지 업로드 안 하는 경우 = 닉네임만 변경
         User updatedUser = User.builder()
-            .userId(userId)
+            .id(userId)
             .nickname(req.getNickname())
             .email(user.getEmail())
             .password(user.getPassword())
             .role(user.getRole())
-            .userProfileImageUrl(user.getUserProfileImageUrl())
+            .profileImage(user.getProfileImage())
             .build();
 
         userRepository.save(updatedUser);
@@ -144,13 +156,10 @@ public class UserService {
     }
 
     public GetUserProfileResponse getProfile(Long userId) {
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new GlobalException(NOT_FOUND_USER));
 
-        return GetUserProfileResponse.builder()
-            .nickname(user.getNickname())
-            .profileImageUrl(user.getUserProfileImageUrl())
-            .build();
+        return GetUserProfileResponse.fromEntity(user);
     }
 
     private void checkDuplicateEmail(UserSignupRequest req) {
