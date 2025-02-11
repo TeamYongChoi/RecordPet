@@ -18,7 +18,11 @@ public enum ResultCode {
     NOT_FOUND_PET_PROFILE("P001","조회된 프로필이 없습니다.",HttpStatus.NOT_FOUND),
 
     // S3 S-
-    IMAGE_UPLOAD_FAIL("S001", "이미지 업로드 실패", HttpStatus.INTERNAL_SERVER_ERROR);
+    IMAGE_UPLOAD_FAIL("S001", "이미지 업로드 실패", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // HealthRecord H-
+    NOT_FOUND_HEALTH_RECORD("H001","조회된 건강기록이 없습니다.", HttpStatus.NOT_FOUND),
+    PET_MISMATCH("H002","해당 애완동물의 건강기록이 아닙니다.", HttpStatus.UNAUTHORIZED);
 
     private final String code;
     private final String message;
