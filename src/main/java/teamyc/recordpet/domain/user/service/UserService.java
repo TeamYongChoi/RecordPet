@@ -116,6 +116,7 @@ public class UserService {
             // 기본 프로필이 아닌 다른 프로필을 이전에 등록한 경우
             if (!user.getProfileImage().isBasic()) {
                 s3Service.deleteFile(user.getProfileImage().getImageUrl());
+                profileImageRepository.deleteById(user.getProfileImage().getId());
             }
             String newProfileImageUrl = uploadProfileImage(multipartFile);
             ProfileImage updatedProfileImage = ProfileImage.builder()

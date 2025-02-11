@@ -13,4 +13,6 @@ public interface ProfileImageRepository {
     ProfileImage findBasicImage(@Param("type") Type type);
 
     ProfileImage save(ProfileImage profileImage);
+
+    void deleteById(Long id);
 }
