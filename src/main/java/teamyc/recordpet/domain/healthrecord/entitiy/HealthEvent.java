@@ -31,4 +31,9 @@ public class HealthEvent {
     public void setHealthRecord(HealthRecord healthRecord) {
         this.healthRecord = healthRecord;
     }
+
+    public void update(LocalDateTime time, String content) {
+        this.occurrenceTime = time;
+        this.content = content;
+    }
 }
