@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import teamyc.recordpet.domain.healthrecord.entitiy.HealthRecord;
 
 import java.util.List;
+import java.util.Optional;
 
 @RepositoryDefinition(domainClass = HealthRecord.class, idClass = Long.class)
 public interface HealthRecordRepository {
@@ -29,4 +30,6 @@ public interface HealthRecordRepository {
                            Pageable pageable);
 
     void deleteAll();
+
+    Optional<HealthRecord> finById(Long recordId);
 }

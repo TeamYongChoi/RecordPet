@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import teamyc.recordpet.domain.healthrecord.dto.HealthRecordCreateRequest;
 import teamyc.recordpet.domain.healthrecord.dto.HealthRecordResponse;
+import teamyc.recordpet.domain.healthrecord.dto.HealthRecordUpdateRequest;
 import teamyc.recordpet.domain.healthrecord.dto.MonthlyHealthRecordResponse;
 import teamyc.recordpet.domain.healthrecord.service.HealthRecordService;
 import teamyc.recordpet.global.exception.CustomResponse;
@@ -49,4 +50,15 @@ public class HealthRecordController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort.split(",")[0]).descending());
         return CustomResponse.success(healthRecordService.findAllHealthRecords(petId, pageable));
     }
+
+    @PutMapping("/{recordId}")
+    public CustomResponse<Void> updateHealthRecord(
+            @PathVariable Long petId,
+            @PathVariable Long recordId,
+            @RequestBody HealthRecordUpdateRequest request
+    ){
+        healthRecordService.updateHealthRecord(petId, recordId, request);
+        return CustomResponse.success(null);
+    }
+
 }
