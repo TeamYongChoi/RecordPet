@@ -1,18 +1,11 @@
 package teamyc.recordpet.domain.pet.service;
 
-import static teamyc.recordpet.global.exception.ResultCode.NOT_FOUND_PET_PROFILE;
-
 import jakarta.transaction.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import teamyc.recordpet.domain.pet.dto.PetRegisterRequest;
-import teamyc.recordpet.domain.pet.dto.PetResponse;
-import teamyc.recordpet.domain.pet.dto.PetUpdateRequest;
-import teamyc.recordpet.domain.pet.dto.PetUpdateResponse;
+import teamyc.recordpet.domain.pet.dto.*;
 import teamyc.recordpet.domain.pet.entity.Pet;
 import teamyc.recordpet.domain.pet.repository.PetRepository;
 import teamyc.recordpet.global.exception.GlobalException;
@@ -20,6 +13,12 @@ import teamyc.recordpet.global.image.ProfileImageRepository;
 import teamyc.recordpet.global.image.entity.ProfileImage;
 import teamyc.recordpet.global.image.entity.Type;
 import teamyc.recordpet.global.s3.S3Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static teamyc.recordpet.global.exception.ResultCode.BAD_REQUEST;
+import static teamyc.recordpet.global.exception.ResultCode.NOT_FOUND_PET_PROFILE;
 
 @RequiredArgsConstructor
 @Service
@@ -30,34 +29,64 @@ public class PetService {
     private final S3Service s3Service;
     private final ProfileImageRepository profileImageRepository;
 
-    //조회
-    public List<PetResponse> PetProfileFindAll() {
-        return petRepository.findAll().stream()
-            .map(PetResponse::fromEntity)
-            .collect(Collectors.toList());
+    // user의 pet 전체 조회
+    public List<GetPetProfileResponse> getAllPetProfile(Long userId) {
+        return petRepository.findAllByUserId(userId)
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE))
+                .stream()
+                .map(GetPetProfileResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public PetResponse PetProfileFindById(Long id) {
-        Pet pet = petRepository.findById(id)
-            .orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
-        return PetResponse.fromEntity(pet);
+    // user pet 상세 조회
+    public GetPetDetailProfileResponse getPetDetailProfile(Long userId, Long petId) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
+
+        if (!userId.equals(pet.getUser().getId())) {
+            throw new GlobalException(BAD_REQUEST);
+        }
+
+        return GetPetDetailProfileResponse.fromEntity(pet);
     }
 
     //등록
-    public PetResponse PetProfileSave(PetRegisterRequest req, MultipartFile profileImage) {
-        String imageUrl = s3Service.uploadImage(profileImage, "pet-profile-images");
+    public PetRegisterResponse savePetProfile(PetRegisterRequest req, MultipartFile profileImage) {
+        // 사용자가 직접 프로필 업로드 하는 경우
+        if (!profileImage.isEmpty()) {
+            String profileImageUrl = s3Service.uploadImage(profileImage, "pet-profile-images");
 
-        Pet savedPet = petRepository.save(req.toEntity(imageUrl));
+            ProfileImage image = ProfileImage.builder()
+                    .type(Type.PET)
+                    .isBasic(false)
+                    .imageUrl(profileImageUrl)
+                    .build();
 
-        return PetResponse.fromEntity(savedPet);
+            profileImageRepository.save(image);
+            petRepository.save(req.toEntity(image));
+
+            return new PetRegisterResponse();
+
+        }
+
+        ProfileImage image = profileImageRepository.findBasicImage(Type.PET);
+
+        petRepository.save(req.toEntity(image));
+
+        return new PetRegisterResponse();
     }
 
     //수정
     @Transactional
-    public PetUpdateResponse PetProfileUpdate(long id, PetUpdateRequest req,
-        MultipartFile profileImage) {
-        Pet pet = petRepository.findById(id)
-            .orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
+    public PetUpdateResponse updatePetProfile(Long userId, Long petId, PetUpdateRequest req,
+                                              MultipartFile profileImage) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
+
+        if (!userId.equals(pet.getUser().getId())) {
+            throw new GlobalException(BAD_REQUEST);
+        }
+
         log.info("Profile ProfileImage in Service: {}", profileImage.getOriginalFilename());
         log.info("Profile ProfileImage Content Type: {}", profileImage.getContentType());
         log.info("Profile ProfileImage Size: {}", profileImage.getSize());
@@ -65,21 +94,22 @@ public class PetService {
         if (!profileImage.isEmpty()) {
             String newImageUrl = uploadProfileImage(profileImage);
 
-            if (pet.getProfileImageUrl() != null) {
+            if (!pet.getProfileImage().isBasic()) {
                 s3Service.deleteFile(pet.getProfileImageUrl());
+                profileImageRepository.deleteById(pet.getProfileImage().getId());
             }
 
             ProfileImage image = ProfileImage.builder()
-                .type(Type.PET)
-                .isBasic(false)
-                .imageUrl(newImageUrl)
-                .build();
+                    .type(Type.PET)
+                    .isBasic(false)
+                    .imageUrl(newImageUrl)
+                    .build();
 
             ProfileImage savedImage = profileImageRepository.save(image);
 
             pet.update(req.getName(), req.getAge(), req.isNeutered(), savedImage);
         } else {
-//            pet.update(req.getName(), req.getAge(), req.isNeutered(), ());
+            pet.update(req.getName(), req.getAge(), req.isNeutered(), pet.getProfileImage());
         }
 
         return PetUpdateResponse.fromEntity(pet);
@@ -90,7 +120,11 @@ public class PetService {
     }
 
     //삭제
-    public void PetProfileDelete(long id) {
-        petRepository.deleteById(id);
+    public void deletePetProfile(Long userId, Long petId) {
+        Pet pet = petRepository.findById(petId).orElseThrow(() -> new GlobalException(NOT_FOUND_PET_PROFILE));
+        if (!userId.equals(pet.getUser().getId())) {
+            throw new GlobalException(BAD_REQUEST);
+        }
+        petRepository.deleteById(petId);
     }
 }

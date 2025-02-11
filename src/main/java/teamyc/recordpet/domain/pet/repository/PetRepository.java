@@ -1,6 +1,8 @@
 package teamyc.recordpet.domain.pet.repository;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.RepositoryDefinition;
+import software.amazon.awssdk.profiles.Profile;
 import teamyc.recordpet.domain.pet.entity.Pet;
 
 import java.util.List;
@@ -13,7 +15,7 @@ public interface PetRepository {
 
     Optional<Pet> findById(Long id);
 
-    List<Pet> findAll();
+    Optional<List<Pet>> findAllByUserId(Long userId);
 
     void deleteById(long id);
 

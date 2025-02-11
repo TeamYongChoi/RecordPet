@@ -7,9 +7,8 @@ import teamyc.recordpet.domain.pet.entity.Gender;
 import teamyc.recordpet.domain.pet.entity.Pet;
 
 @Getter
-public class PetResponse {
+public class GetPetDetailProfileResponse {
 
-    private final Long id;
     private final String name;
     private final int age;
     private final Gender gender;
@@ -19,8 +18,7 @@ public class PetResponse {
     private final String photoUrl;
 
     @Builder
-    private PetResponse(Long id, String name, int age, Gender gender, boolean isNeutered, String photoUrl) {
-        this.id = id;
+    public GetPetDetailProfileResponse(String name, int age, Gender gender, boolean isNeutered, String photoUrl) {
         this.name = name;
         this.age = age;
         this.gender = gender;
@@ -28,14 +26,15 @@ public class PetResponse {
         this.photoUrl = photoUrl;
     }
 
-    public static PetResponse fromEntity(Pet pet) {
-        return PetResponse.builder()
-                .id(pet.getId())
+    public static GetPetDetailProfileResponse fromEntity(Pet pet) {
+        String profileImageUrl = pet.getProfileImageUrl();
+
+        return GetPetDetailProfileResponse.builder()
                 .name(pet.getName())
                 .age(pet.getAge())
                 .gender(pet.getGender())
                 .isNeutered(pet.getIsNeutered())
-                .photoUrl(pet.getPhotoUrl())
+                .photoUrl(profileImageUrl)
                 .build();
     }
 }
