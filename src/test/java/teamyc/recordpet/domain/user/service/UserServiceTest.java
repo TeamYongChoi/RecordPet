@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import teamyc.recordpet.domain.user.dto.UserChangePasswordRequest;
 import teamyc.recordpet.domain.user.dto.UserEditProfileRequest;
 import teamyc.recordpet.domain.user.entity.User;
 import teamyc.recordpet.domain.user.repository.UserRepository;
+import teamyc.recordpet.global.image.ProfileImageRepository;
 import teamyc.recordpet.global.s3.S3Service;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,8 @@ class UserServiceTest extends UserTest {
 
     @Mock
     UserRepository userRepository;
+    @Mock
+    ProfileImageRepository profileImageRepository;
     @InjectMocks
     UserService userService;
     @Mock
@@ -54,8 +58,8 @@ class UserServiceTest extends UserTest {
             UserChangePasswordRequest req = new UserChangePasswordRequest(TEST_USER_PASSWORD,
                 TEST_USER_NEXT_PASSWORD);
 
-            given(userRepository.findByUserId(any(Long.class))).willReturn(
-                Optional.ofNullable(TEST_USER));
+            given(userRepository.findById(any(Long.class))).willReturn(
+                Optional.ofNullable(TEST_BASIC_IMAGE_USER));
             given(userRepository.save(any(User.class))).willReturn(TEST_UPDATED_USER);
             given(passwordEncoder.matches(req.getCurrentPassword(), TEST_USER_PASSWORD)).willReturn(
                 true);
@@ -67,10 +71,10 @@ class UserServiceTest extends UserTest {
 
             // then
             verify(userRepository).save(any(User.class));
-            verify(userRepository).findByUserId(any(Long.class));
+            verify(userRepository).findById(any(Long.class));
             verify(userRepository).save(argumentCaptor.capture());
             assertEquals(TEST_USER_NEXT_PASSWORD, TEST_UPDATED_USER.getPassword());
-            assertEquals(TEST_USER_ID, argumentCaptor.getValue().getUserId());
+            assertEquals(TEST_USER_ID, argumentCaptor.getValue().getId());
         }
     }
 
@@ -89,15 +93,15 @@ class UserServiceTest extends UserTest {
             MockMultipartFile mockMultipartFile = new MockMultipartFile("image", "", "",
                 new byte[0]);
 
-            given(userRepository.findByUserId(anyLong())).willReturn(
-                Optional.ofNullable(TEST_USER));
+            given(userRepository.findById(anyLong())).willReturn(
+                Optional.ofNullable(TEST_BASIC_IMAGE_USER));
             given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
 
             // then
-            verify(userRepository).findByUserId(TEST_USER_ID);
+            verify(userRepository).findById(TEST_USER_ID);
             verify(userRepository).save(any());
         }
 
@@ -111,23 +115,24 @@ class UserServiceTest extends UserTest {
             MockMultipartFile mockMultipartFile = new MockMultipartFile("image", "profile.jpg",
                 "image/jpeg", "fake image".getBytes());
 
-            given(userRepository.findByUserId(anyLong())).willReturn(
-                Optional.ofNullable(TEST_USER));
-            given(s3Service.uploadImage(any(), any())).willReturn(TEST_UPDATED_USER_PROFILE_IMAGE);
+            given(userRepository.findById(anyLong())).willReturn(
+                Optional.ofNullable(TEST_CUSTOM_IMAGE_USER));
+            given(s3Service.uploadImage(any(), any())).willReturn("test_image_url");
             given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
 
             // then
-            verify(userRepository).findByUserId(TEST_USER_ID);
+            verify(userRepository).findById(TEST_USER_ID);
             verify(userRepository).save(any());
             verify(s3Service).deleteFile(any());
+            verify(profileImageRepository).deleteById(anyLong());
             verify(s3Service).uploadImage(mockMultipartFile, "user-profile-images");
         }
 
         @Test
-        @DisplayName("사용자 프로필 편집 성공-multipartFile 업로드-기존 프로필 없는 경우")
+        @DisplayName("사용자 프로필 편집 성공-multipartFile 업로드-이미 기본 프로필인 경우")
         void editUserProfileSuccess_NotEmptyMultipartFile_NoExistProfileImage() {
             // given
             UserEditProfileRequest req = UserEditProfileRequest.builder()
@@ -136,17 +141,17 @@ class UserServiceTest extends UserTest {
             MockMultipartFile mockMultipartFile = new MockMultipartFile("image", "profile.jpg",
                 "image/jpeg", "fake image".getBytes());
 
-            given(userRepository.findByUserId(anyLong())).willReturn(
-                Optional.ofNullable(TEST_NO_PROFILE_IMAGE_USER));
+            given(userRepository.findById(anyLong())).willReturn(
+                Optional.ofNullable(TEST_BASIC_IMAGE_USER));
             given(s3Service.uploadImage(any(), eq("user-profile-images"))).willReturn(
-                TEST_UPDATED_USER_PROFILE_IMAGE);
+                "test_image_url");
             given(userRepository.existsByNickname(anyString())).willReturn(false);
 
             // when
             userService.editProfile(TEST_USER_ID, req, mockMultipartFile);
 
             // then
-            verify(userRepository).findByUserId(TEST_USER_ID);
+            verify(userRepository).findById(TEST_USER_ID);
             verify(userRepository).save(any());
             verify(s3Service, never()).deleteFile(any());
             verify(s3Service).uploadImage(mockMultipartFile, "user-profile-images");
