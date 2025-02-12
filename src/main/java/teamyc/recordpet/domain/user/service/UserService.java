@@ -6,6 +6,7 @@ import static teamyc.recordpet.global.exception.ResultCode.NOT_ACCEPTABLE_NICKNA
 import static teamyc.recordpet.global.exception.ResultCode.NOT_ACCEPTABLE_PASSWORD_BLANK;
 import static teamyc.recordpet.global.exception.ResultCode.NOT_FOUND_USER;
 import static teamyc.recordpet.global.exception.ResultCode.NOT_MATCH_PASSWORD;
+import static teamyc.recordpet.global.exception.ResultCode.SYSTEM_ERROR;
 import static teamyc.recordpet.global.exception.ResultCode.UNAUTHORIZED_EMAIL;
 
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,8 @@ public class UserService {
 
         String pw = passwordEncoder.encode(req.getPassword());
 
-        ProfileImage profileImage = profileImageRepository.findBasicImage(Type.USER);
+        ProfileImage profileImage = profileImageRepository.findBasicImage(Type.USER)
+            .orElseThrow(() -> new GlobalException(SYSTEM_ERROR));
 
         User user = req.toEntity(pw, profileImage);
         userRepository.save(user);
