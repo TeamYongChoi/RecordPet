@@ -2,8 +2,8 @@ package teamyc.recordpet.domain.user.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import teamyc.recordpet.domain.user.entity.User;
 import teamyc.recordpet.domain.user.entity.Role;
+import teamyc.recordpet.domain.user.entity.User;
 
 @Getter
 public class UserSignupResponse {
@@ -21,7 +21,7 @@ public class UserSignupResponse {
         this.role = role;
     }
 
-    public static UserSignupResponse from(User user) {
+    public static UserSignupResponse fromEntity(User user) {
         return UserSignupResponse.builder()
             .userId(user.getUserId())
             .email(user.getEmail())
