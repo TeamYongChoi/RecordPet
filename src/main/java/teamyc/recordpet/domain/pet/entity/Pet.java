@@ -15,13 +15,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import teamyc.recordpet.domain.user.entity.User;
+import teamyc.recordpet.global.BaseEntity;
 import teamyc.recordpet.global.image.entity.ProfileImage;
 
 @Entity
 @Table(name = "pet")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Pet {
+public class Pet extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

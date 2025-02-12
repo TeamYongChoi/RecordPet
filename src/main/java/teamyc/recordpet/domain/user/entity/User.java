@@ -13,13 +13,14 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import teamyc.recordpet.global.BaseEntity;
 import teamyc.recordpet.global.image.entity.ProfileImage;
 
 @Entity
 @Table(name = "user")
 @Getter
 @NoArgsConstructor
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

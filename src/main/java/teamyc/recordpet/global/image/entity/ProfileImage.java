@@ -11,12 +11,13 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import teamyc.recordpet.global.BaseEntity;
 
 @Getter
 @Entity
 @Table(name = "profile_image")
 @NoArgsConstructor
-public class ProfileImage {
+public class ProfileImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
