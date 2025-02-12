@@ -18,7 +18,8 @@ public class GetPetDetailProfileResponse {
     private final String photoUrl;
 
     @Builder
-    public GetPetDetailProfileResponse(String name, int age, Gender gender, boolean isNeutered, String photoUrl) {
+    public GetPetDetailProfileResponse(String name, int age, Gender gender, boolean isNeutered,
+        String photoUrl) {
         this.name = name;
         this.age = age;
         this.gender = gender;
@@ -30,11 +31,16 @@ public class GetPetDetailProfileResponse {
         String profileImageUrl = pet.getProfileImageUrl();
 
         return GetPetDetailProfileResponse.builder()
-                .name(pet.getName())
-                .age(pet.getAge())
-                .gender(pet.getGender())
-                .isNeutered(pet.getIsNeutered())
-                .photoUrl(profileImageUrl)
-                .build();
+            .name(pet.getName())
+            .age(pet.getAge())
+            .gender(pet.getGender())
+            .isNeutered(pet.getIsNeutered())
+            .photoUrl(profileImageUrl)
+            .build();
+    }
+
+    @JsonProperty("isNeutered")
+    public boolean isNeutered() {
+        return isNeutered;
     }
 }
