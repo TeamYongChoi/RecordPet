@@ -22,8 +22,10 @@ import teamyc.recordpet.domain.pet.repository.PetRepository;
 
 import java.time.LocalDateTime;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,133 +93,261 @@ class HealthRecordControllerTest {
 
     //조회(월별)
     @DisplayName("월별 조회 성공 - 여러 기록")
-@Test
-void findHealthRecordsByMonth() throws Exception {
-    final String url = "/api/v1/pets/{id}/health-records/month";
+    @Test
+    void findHealthRecordsByMonth() throws Exception {
+        final String url = "/api/v1/pets/{id}/health-records/month";
 
-    //1. 1월 기록 1
-    HealthRecord record1 = HealthRecord.builder()
-            .pet(testPet)
-            .title("기침 기록")
-            .build();
+        //1. 1월 기록 1
+        HealthRecord record1 = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
 
-    HealthEvent event1 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
-            .content("기침 발생")
-            .healthRecord(record1)
-            .build();
+        HealthEvent event1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
+                .content("기침 발생")
+                .healthRecord(record1)
+                .build();
 
-    record1.addEvent(event1);
+        record1.addEvent(event1);
 
-    //2. 1월 기록 2
-    HealthRecord record2 = HealthRecord.builder()
-            .pet(testPet)
-            .title("열 기록")
-            .build();
+        //2. 1월 기록 2
+        HealthRecord record2 = HealthRecord.builder()
+                .pet(testPet)
+                .title("열 기록")
+                .build();
 
-    HealthEvent event2 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2025, 1, 2, 15, 30))
-            .content("발열")
-            .healthRecord(record2)
-            .build();
+        HealthEvent event2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 2, 15, 30))
+                .content("발열")
+                .healthRecord(record2)
+                .build();
 
-    record2.addEvent(event2);
+        record2.addEvent(event2);
 
-    //3. 12월 기록 (조회되지 않아야 함)
-    HealthRecord record3 = HealthRecord.builder()
-            .pet(testPet)
-            .title("12월 감기 기록")
-            .build();
+        //3. 12월 기록 (조회되지 않아야 함)
+        HealthRecord record3 = HealthRecord.builder()
+                .pet(testPet)
+                .title("12월 감기 기록")
+                .build();
 
-    HealthEvent event3 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2024, 12, 25, 20, 0))
-            .content("심한 기침")
-            .healthRecord(record3)
-            .build();
+        HealthEvent event3 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2024, 12, 25, 20, 0))
+                .content("심한 기침")
+                .healthRecord(record3)
+                .build();
 
-    record3.addEvent(event3);
+        record3.addEvent(event3);
 
-    // 저장
-    healthRecordRepository.save(record1);
-    healthRecordRepository.save(record2);
-    healthRecordRepository.save(record3);
+        // 저장
+        healthRecordRepository.save(record1);
+        healthRecordRepository.save(record2);
+        healthRecordRepository.save(record3);
 
-    //1월 데이터만 가져오기
-    ResultActions result = mockMvc.perform(get(url, testPet.getId())
-            .param("year", "2025")
-            .param("month", "1"));
+        //1월 데이터만 가져오기
+        ResultActions result = mockMvc.perform(get(url, testPet.getId())
+                .param("year", "2025")
+                .param("month", "1"));
 
-    result.andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.length()").value(2)) // ✅ 1월 기록 2개여야 함
-            .andExpect(jsonPath("$.data[0].title").value("기침 기록"))
-            .andExpect(jsonPath("$.data[1].title").value("열 기록"));
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2)) // ✅ 1월 기록 2개여야 함
+                .andExpect(jsonPath("$.data[0].title").value("기침 기록"))
+                .andExpect(jsonPath("$.data[1].title").value("열 기록"));
     }
 
 
     //조회(전체)
     @DisplayName("전체 건강기록 조회 성공")
-@Test
-void findAllHealthRecords() throws Exception {
-    final String url = "/api/v1/pets/{id}/health-records/all";
+    @Test
+    void findAllHealthRecords() throws Exception {
+        final String url = "/api/v1/pets/{id}/health-records/all";
 
-    //1. 테스트 데이터 생성
-    HealthRecord record1 = HealthRecord.builder()
-            .pet(testPet)
-            .title("기침 기록")
-            .build();
+        //1. 테스트 데이터 생성
+        HealthRecord record1 = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
 
-    HealthEvent event1 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
-            .content("기침 발생")
-            .healthRecord(record1)
-            .build();
+        HealthEvent event1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
+                .content("기침 발생")
+                .healthRecord(record1)
+                .build();
 
-    record1.addEvent(event1);
+        record1.addEvent(event1);
 
-    HealthRecord record2 = HealthRecord.builder()
-            .pet(testPet)
-            .title("발열 기록")
-            .build();
+        HealthRecord record2 = HealthRecord.builder()
+                .pet(testPet)
+                .title("발열 기록")
+                .build();
 
-    HealthEvent event2 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2025, 1, 2, 15, 30))
-            .content("고열")
-            .healthRecord(record2)
-            .build();
+        HealthEvent event2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 2, 15, 30))
+                .content("고열")
+                .healthRecord(record2)
+                .build();
 
-    record2.addEvent(event2);
+        record2.addEvent(event2);
 
-    HealthRecord record3 = HealthRecord.builder()
-            .pet(testPet)
-            .title("피부 질환 기록")
-            .build();
+        HealthRecord record3 = HealthRecord.builder()
+                .pet(testPet)
+                .title("피부 질환 기록")
+                .build();
 
-    HealthEvent event3 = HealthEvent.builder()
-            .occurrenceTime(LocalDateTime.of(2024, 12, 20, 18, 45))
-            .content("피부 발진")
-            .healthRecord(record3)
-            .build();
+        HealthEvent event3 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2024, 12, 20, 18, 45))
+                .content("피부 발진")
+                .healthRecord(record3)
+                .build();
 
-    record3.addEvent(event3);
+        record3.addEvent(event3);
 
-    //저장
-    healthRecordRepository.save(record1);
-    healthRecordRepository.save(record2);
-    healthRecordRepository.save(record3);
+        //저장
+        healthRecordRepository.save(record1);
+        healthRecordRepository.save(record2);
+        healthRecordRepository.save(record3);
 
-    //when - GET 요청 (page=0, size=10)
-    ResultActions result = mockMvc.perform(get(url, testPet.getId())
-            .param("page", "0")
-            .param("size", "10")
-            .param("sort", "id,desc")); // 정렬 기준 id 내림차순
+        //when - GET 요청 (page=0, size=10)
+        ResultActions result = mockMvc.perform(get(url, testPet.getId())
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "id,desc")); // 정렬 기준 id 내림차순
 
-    //then - 응답 검증
-    result.andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.content.length()").value(3)) // ✅ 전체 3개여야 함
-            .andExpect(jsonPath("$.data.content[0].title").value("피부 질환 기록")) // 가장 최근 기록
-            .andExpect(jsonPath("$.data.content[1].title").value("발열 기록"))
-            .andExpect(jsonPath("$.data.content[2].title").value("기침 기록"));
-}
+        //then - 응답 검증
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(3)) // ✅ 전체 3개여야 함
+                .andExpect(jsonPath("$.data.content[0].title").value("피부 질환 기록")) // 가장 최근 기록
+                .andExpect(jsonPath("$.data.content[1].title").value("발열 기록"))
+                .andExpect(jsonPath("$.data.content[2].title").value("기침 기록"));
+    }
+
+    @Test
+    @DisplayName("건강 기록 수정 성공")
+    void updateHealthRecordSuccess() throws Exception {
+        final String url = "/api/v1/pets/{petId}/health-records/{recordId}";
+
+        // 테스트용 건강 기록 생성
+        HealthRecord testRecord = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
+
+        // 테스트용 이벤트 2개 생성
+        HealthEvent testEvent1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
+                .content("기침 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        HealthEvent testEvent2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 12, 30))
+                .content("구토 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        testRecord.addEvent(testEvent1);
+        testRecord.addEvent(testEvent2);
+
+        healthRecordRepository.save(testRecord);
+
+        // 수정할 데이터 (제목 변경 & 이벤트 추가)
+        String updateRequest = """
+                {
+                    "title": "수정된 기침 기록",
+                    "events": [
+                        {
+                            "occurrenceTime": "2025-01-02T08:00:00",
+                            "content": "미열 발생"
+                        }
+                    ]
+                }
+                """;
+
+        mockMvc.perform(put(url, testPet.getId(), testRecord.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateRequest))
+                .andExpect(status().isOk());
+
+        HealthRecord healthRecord = healthRecordRepository.findByIdAndPetId(testRecord.getId(), testPet.getId()).orElseThrow();
+
+        assertThat(healthRecord.getTitle()).isEqualTo("수정된 기침 기록");
+        assertThat(healthRecord.getEvents().size()).isEqualTo(1);
+        assertThat(healthRecord.getEvents().get(0).getContent()).isEqualTo("미열 발생");
+    }
+
+    // ✅ 건강 기록 삭제 테스트
+    @Test
+    @DisplayName("건강 기록 삭제 성공")
+    void deleteHealthRecordSuccess() throws Exception {
+
+        // 테스트용 건강 기록 생성
+        HealthRecord testRecord = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
+
+        // 테스트용 이벤트 2개 생성
+        HealthEvent testEvent1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
+                .content("기침 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        HealthEvent testEvent2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 12, 30))
+                .content("구토 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        testRecord.addEvent(testEvent1);
+        testRecord.addEvent(testEvent2);
+
+        healthRecordRepository.save(testRecord);
+
+        final String url = "/api/v1/pets/{petId}/health-records/{recordId}";
+
+        mockMvc.perform(delete(url, testPet.getId(), testRecord.getId()))
+                .andExpect(status().isOk());
+
+        assertFalse(healthRecordRepository.existsById(testRecord.getId()));
+    }
+
+    // ✅ 특정 이벤트 삭제 테스트
+    @Test
+    @DisplayName("건강 이벤트 삭제 성공")
+    void deleteHealthEventSuccess() throws Exception {
+        final String url = "/api/v1/pets/{petId}/health-records/{recordId}/events/{eventId}";
+
+        // 테스트용 건강 기록 생성
+        HealthRecord testRecord = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
+
+        // 테스트용 이벤트 2개 생성
+        HealthEvent testEvent1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 10, 30))
+                .content("기침 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        HealthEvent testEvent2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 1, 12, 30))
+                .content("구토 발생")
+                .healthRecord(testRecord)
+                .build();
+
+        testRecord.addEvent(testEvent1);
+        testRecord.addEvent(testEvent2);
+
+        healthRecordRepository.save(testRecord);
+
+        mockMvc.perform(delete(url, testPet.getId(), testRecord.getId(), testEvent1.getId()))
+                .andExpect(status().isOk());
+
+        HealthRecord updatedRecord = healthRecordRepository.findByIdAndPetId(testPet.getId(), testRecord.getId()).orElseThrow();
+        assertEquals(1, updatedRecord.getEvents().size()); // 이벤트가 1개만 남았는지 확인
+    }
 
 
     private Pet createDefaultPet() {
