@@ -22,7 +22,8 @@ public enum ResultCode {
 
     // HealthRecord H-
     NOT_FOUND_HEALTH_RECORD("H001","조회된 건강기록이 없습니다.", HttpStatus.NOT_FOUND),
-    PET_MISMATCH("H002","해당 애완동물의 건강기록이 아닙니다.", HttpStatus.UNAUTHORIZED);
+    NOT_FOUND_HEALTH_EVENT("H002", "조회된 건강기록 이벤트가 없습니다.", HttpStatus.NOT_FOUND),
+    PET_MISMATCH("H003","해당 애완동물의 건강기록이 아닙니다.", HttpStatus.UNAUTHORIZED);
 
     private final String code;
     private final String message;
