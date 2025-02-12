@@ -31,5 +31,12 @@ public interface HealthRecordRepository {
 
     void deleteAll();
 
-    Optional<HealthRecord> finById(Long recordId);
+    Optional<HealthRecord> findById(Long recordId);
+
+    Optional<HealthRecord> findByIdAndPetId(Long recordId, Long petId);
+
+    void delete(HealthRecord healthRecord);
+
+    boolean existsById(Long id);
+
 }

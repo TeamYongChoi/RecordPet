@@ -70,7 +70,7 @@ public class HealthRecordService {
     }
 
     public void updateHealthRecord(Long petId, Long recordId, HealthRecordUpdateRequest request) {
-        HealthRecord healthRecord = healthRecordRepository.finById(recordId)
+        HealthRecord healthRecord = healthRecordRepository.findById(recordId)
                 .orElseThrow(() -> new GlobalException(NOT_FOUND_HEALTH_RECORD));
 
         if (!isEquals(petId, healthRecord)) {
@@ -79,6 +79,27 @@ public class HealthRecordService {
 
         updateTitleIfChanged(healthRecord, request);
         updateEvents(healthRecord, request);
+    }
+
+    @Transactional
+    public void deleteHealthRecord(Long petId, Long recordId) {
+        HealthRecord healthRecord = healthRecordRepository.findByIdAndPetId(recordId, petId)
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_HEALTH_RECORD));
+
+        healthRecordRepository.delete(healthRecord);
+    }
+
+    @Transactional
+    public void deleteHealthEvent(Long petId, Long recordId, Long eventId) {
+        HealthRecord record = healthRecordRepository.findByIdAndPetId(recordId, petId)
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_HEALTH_RECORD));
+
+        HealthEvent event = record.getEvents().stream()
+                .filter(e -> e.getId().equals(eventId))
+                .findFirst()
+                .orElseThrow(() -> new GlobalException(NOT_FOUND_HEALTH_EVENT));
+
+        record.removeEvent(event);
     }
 
     private boolean isEquals(Long petId, HealthRecord healthRecord) {
@@ -123,4 +144,6 @@ public class HealthRecordService {
     private static void removeDeletedEvents(HealthRecord healthRecord, Map<Long, HealthEvent> existingEvents) {
         existingEvents.values().forEach(healthRecord::removeEvent);
     }
+
+
 }

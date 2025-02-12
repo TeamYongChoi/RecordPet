@@ -55,10 +55,25 @@ public class HealthRecordController {
     public CustomResponse<Void> updateHealthRecord(
             @PathVariable Long petId,
             @PathVariable Long recordId,
-            @RequestBody HealthRecordUpdateRequest request
-    ){
+            @RequestBody HealthRecordUpdateRequest request){
         healthRecordService.updateHealthRecord(petId, recordId, request);
         return CustomResponse.success(null);
     }
 
+    @DeleteMapping("/{recordId}")
+    public CustomResponse<Void> deleteHealthRecord(
+            @PathVariable Long petId,
+            @PathVariable Long recordId){
+        healthRecordService.deleteHealthRecord(petId, recordId);
+        return CustomResponse.success(null);
+    }
+
+    @DeleteMapping("/{recordId}/events/{eventId}")
+    public CustomResponse<Void> deleteHealthEvent(
+            @PathVariable Long petId,
+            @PathVariable Long recordId,
+            @PathVariable Long eventId){
+        healthRecordService.deleteHealthEvent(petId, recordId, eventId);
+        return CustomResponse.success(null);
+    }
 }
