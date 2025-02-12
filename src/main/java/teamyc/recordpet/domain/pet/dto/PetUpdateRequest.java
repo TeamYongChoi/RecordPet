@@ -1,23 +1,26 @@
 package teamyc.recordpet.domain.pet.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import teamyc.recordpet.domain.pet.entity.Gender;
 
 @Getter
 @NoArgsConstructor
 public class PetUpdateRequest {
+
     private String name;
     private int age;
     @JsonProperty("isNeutered")
     private boolean isNeutered;
-    private String photoUrl;
+    private Gender gender;
 
     @Builder
-    public PetUpdateRequest(String name, int age, boolean isNeutered, String photoUrl) {
+    public PetUpdateRequest(String name, int age, boolean isNeutered, Gender gender) {
         this.name = name;
         this.age = age;
         this.isNeutered = isNeutered;
-        this.photoUrl = photoUrl;
+        this.gender = gender;
     }
-
 }
