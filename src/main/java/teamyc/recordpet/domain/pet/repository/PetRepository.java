@@ -18,4 +18,6 @@ public interface PetRepository {
     void deleteById(long id);
 
     void deleteAll();
+
+    boolean existsById(Long id);
 }
