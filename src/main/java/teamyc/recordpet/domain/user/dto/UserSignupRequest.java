@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import teamyc.recordpet.domain.user.entity.Role;
 import teamyc.recordpet.domain.user.entity.User;
+import teamyc.recordpet.global.image.entity.ProfileImage;
 
 @Getter
 @AllArgsConstructor
@@ -18,12 +19,13 @@ public class UserSignupRequest {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9]).{10,16}$", message = "비밀번호는 특수문자, 대소문자 포함 10자-16자 이내여야 합니다.")
     private final String password;
 
-    public User toEntity(String encodedPassword) {
+    public User toEntity(String encodedPassword, ProfileImage profileImage) {
         return User.builder()
             .email(this.email)
             .nickname(this.nickname)
             .password(encodedPassword)
             .role(Role.MEMBER)
+            .profileImage(profileImage)
             .build();
     }
 }

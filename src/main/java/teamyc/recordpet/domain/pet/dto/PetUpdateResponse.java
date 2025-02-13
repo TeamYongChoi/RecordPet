@@ -32,7 +32,7 @@ public class PetUpdateResponse {
                 .age(pet.getAge())
                 .gender(pet.getGender())
                 .isNeutered(pet.getIsNeutered())
-                .photoUrl(pet.getPhotoUrl())
+                .photoUrl(pet.getProfileImageUrl())
                 .build();
     }
 }
