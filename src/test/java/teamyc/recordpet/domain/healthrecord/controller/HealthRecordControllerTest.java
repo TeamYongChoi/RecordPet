@@ -91,6 +91,77 @@ class HealthRecordControllerTest {
         result.andExpect(status().isOk());
     }
 
+    @DisplayName("일별 조회 성공 - 특정 날짜의 기록 조회")
+    @Test
+    void findHealthRecordsByDate() throws Exception {
+        final String url = "/api/v1/pets/{id}/health-records/day";
+
+        // 1. 2025년 1월 5일 기록 1
+        HealthRecord record1 = HealthRecord.builder()
+                .pet(testPet)
+                .title("기침 기록")
+                .build();
+
+        HealthEvent event1 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 5, 10, 30))
+                .content("기침 발생")
+                .healthRecord(record1)
+                .build();
+
+        HealthEvent event2 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 5, 14, 00))
+                .content("기침 악화")
+                .healthRecord(record1)
+                .build();
+
+        record1.addEvent(event1);
+        record1.addEvent(event2);
+
+        // 2. 2025년 1월 5일 기록 2
+        HealthRecord record2 = HealthRecord.builder()
+                .pet(testPet)
+                .title("발열 기록")
+                .build();
+
+        HealthEvent event3 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 5, 15, 30))
+                .content("고열")
+                .healthRecord(record2)
+                .build();
+
+        record2.addEvent(event3);
+
+        // 3. 2025년 1월 4일 기록 (조회되지 않아야 함)
+        HealthRecord record3 = HealthRecord.builder()
+                .pet(testPet)
+                .title("두통 기록")
+                .build();
+
+        HealthEvent event4 = HealthEvent.builder()
+                .occurrenceTime(LocalDateTime.of(2025, 1, 4, 12, 0))
+                .content("심한 두통")
+                .healthRecord(record3)
+                .build();
+
+        record3.addEvent(event4);
+
+        // 저장
+        healthRecordRepository.save(record1);
+        healthRecordRepository.save(record2);
+        healthRecordRepository.save(record3);
+
+        // 2025년 1월 5일 데이터만 가져오기
+        ResultActions result = mockMvc.perform(get(url, testPet.getId())
+                .param("date", "2025-01-05"));
+
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].title").value("기침 기록"))
+                .andExpect(jsonPath("$.data[0].events.length()").value(2))
+                .andExpect(jsonPath("$.data[1].title").value("발열 기록"))
+                .andExpect(jsonPath("$.data[1].events.length()").value(1));
+    }
+
     //조회(월별)
     @DisplayName("월별 조회 성공 - 여러 기록")
     @Test
@@ -150,7 +221,7 @@ class HealthRecordControllerTest {
                 .param("month", "1"));
 
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(2)) // ✅ 1월 기록 2개여야 함
+                .andExpect(jsonPath("$.data.length()").value(2))
                 .andExpect(jsonPath("$.data[0].title").value("기침 기록"))
                 .andExpect(jsonPath("$.data[1].title").value("열 기록"));
     }
@@ -215,7 +286,7 @@ class HealthRecordControllerTest {
 
         //then - 응답 검증
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content.length()").value(3)) // ✅ 전체 3개여야 함
+                .andExpect(jsonPath("$.data.content.length()").value(3))
                 .andExpect(jsonPath("$.data.content[0].title").value("피부 질환 기록")) // 가장 최근 기록
                 .andExpect(jsonPath("$.data.content[1].title").value("발열 기록"))
                 .andExpect(jsonPath("$.data.content[2].title").value("기침 기록"));
@@ -312,7 +383,6 @@ class HealthRecordControllerTest {
         assertFalse(healthRecordRepository.existsById(testRecord.getId()));
     }
 
-    // ✅ 특정 이벤트 삭제 테스트
     @Test
     @DisplayName("건강 이벤트 삭제 성공")
     void deleteHealthEventSuccess() throws Exception {
@@ -345,7 +415,8 @@ class HealthRecordControllerTest {
         mockMvc.perform(delete(url, testPet.getId(), testRecord.getId(), testEvent1.getId()))
                 .andExpect(status().isOk());
 
-        HealthRecord updatedRecord = healthRecordRepository.findByIdAndPetId(testPet.getId(), testRecord.getId()).orElseThrow();
+        HealthRecord updatedRecord = healthRecordRepository.findByIdAndPetId(testRecord.getId(), testPet.getId())
+                .orElseThrow(() -> new RuntimeException("HealthRecord not found for pet with id: " + testPet.getId()));
         assertEquals(1, updatedRecord.getEvents().size()); // 이벤트가 1개만 남았는지 확인
     }
 
