@@ -4,21 +4,20 @@ import lombok.Builder;
 import teamyc.recordpet.domain.healthrecord.entitiy.HealthEvent;
 import teamyc.recordpet.domain.healthrecord.entitiy.HealthRecord;
 
-import java.util.List;
-
-public record HealthRecordResponse(String title,
-                                   List<HealthEvent> events) {
+public record HealthRecordResponse(
+        String title,
+        HealthEvent firstEvent) {
 
     @Builder
-    public HealthRecordResponse(String title, List<HealthEvent> events){
+    public HealthRecordResponse(String title, HealthEvent firstEvent) {
         this.title = title;
-        this.events = events;
+        this.firstEvent = firstEvent;
     }
 
-    public static HealthRecordResponse fromEntity(HealthRecord healthRecord){
+    public static HealthRecordResponse fromEntity(HealthRecord healthRecord) {
         return HealthRecordResponse.builder()
                 .title(healthRecord.getTitle())
-                .events(healthRecord.getEvents())
+                .firstEvent(healthRecord.getEvents().isEmpty() ? null : healthRecord.getEvents().get(0))
                 .build();
     }
 }
