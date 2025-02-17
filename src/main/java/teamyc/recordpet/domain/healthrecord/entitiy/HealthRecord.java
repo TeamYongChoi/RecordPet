@@ -11,8 +11,6 @@ import java.util.List;
 @Entity(name = "health_record")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class HealthRecord {
 
     @Id
@@ -26,13 +24,19 @@ public class HealthRecord {
     private String title;
 
     @OneToMany(mappedBy = "healthRecord", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     @JsonManagedReference
     private List<HealthEvent> events = new ArrayList<>();
 
+    @Builder
+    public HealthRecord(Pet pet, String title, List<HealthEvent> events) {
+        this.pet = pet;
+        this.title = title;
+        this.events = events == null ? new ArrayList<>() : new ArrayList<>(events);
+    }
+
     public void addEvent(HealthEvent event) {
         events.add(event);
-        event.setHealthRecord(this);  // 양방향 관계 설정
+        event.setHealthRecord(this);
     }
 
     public void updateTitle(String newTitle) {
