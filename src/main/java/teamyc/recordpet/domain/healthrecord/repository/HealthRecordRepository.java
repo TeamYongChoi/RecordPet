@@ -21,6 +21,12 @@ public interface HealthRecordRepository {
        "WHERE hr.pet.id = :petId " +
        "AND FUNCTION('YEAR', e.occurrenceTime) = :year " +
        "AND FUNCTION('MONTH', e.occurrenceTime) = :month")
+    @Query("SELECT hr FROM health_record hr " +
+            "WHERE hr.pet.id = :petId " +
+            "AND EXISTS (SELECT 1 FROM health_event e " +
+            "            WHERE e.healthRecord = hr " +
+            "            AND FUNCTION('YEAR', e.occurrenceTime) = :year " +
+            "            AND FUNCTION('MONTH', e.occurrenceTime) = :month)")
     List<HealthRecord> findByMonthAndPetId(@Param("petId") Long petId,
                                            @Param("year") int year,
                                            @Param("month") int month);
