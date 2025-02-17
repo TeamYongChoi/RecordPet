@@ -62,18 +62,20 @@ public class HealthRecordService {
     }
 
     public Page<HealthRecordResponse> findAllHealthRecords(Long petId, Pageable pageable) {
-        if (!petRepository.existsById(petId)) {
-            throw new GlobalException(NOT_FOUND_PET_PROFILE);
-        }
-        return healthRecordRepository.findAllByPetId(petId, pageable)
-                .map(HealthRecordResponse::fromEntity);
+        List<HealthRecord> healthRecords = healthRecordRepository.findAllByPetId(petId, pageable);
+
+        List<HealthRecordResponse> responses = healthRecords.stream()
+            .map(HealthRecordResponse::fromEntity)
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(responses, pageable, responses.size());
     }
 
     public void updateHealthRecord(Long petId, Long recordId, HealthRecordUpdateRequest request) {
         HealthRecord healthRecord = healthRecordRepository.findById(recordId)
                 .orElseThrow(() -> new GlobalException(NOT_FOUND_HEALTH_RECORD));
 
-        if (!isEquals(petId, healthRecord)) {
+        if (!isMatchingPetId(petId, healthRecord)) {
             throw new GlobalException(PET_MISMATCH);
         }
 
@@ -102,7 +104,7 @@ public class HealthRecordService {
         record.removeEvent(event);
     }
 
-    private boolean isEquals(Long petId, HealthRecord healthRecord) {
+    private boolean isMatchingPetId(Long petId, HealthRecord healthRecord) {
         return healthRecord.getPet().getId().equals(petId);
     }
 

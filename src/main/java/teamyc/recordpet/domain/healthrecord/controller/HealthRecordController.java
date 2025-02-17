@@ -48,7 +48,9 @@ public class HealthRecordController {
             @RequestParam(defaultValue = "id,desc") String sort
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort.split(",")[0]).descending());
-        return CustomResponse.success(healthRecordService.findAllHealthRecords(petId, pageable));
+        Page<HealthRecordResponse> response = healthRecordService.findAllHealthRecords(petId, pageable);
+
+        return CustomResponse.success(response);
     }
 
     @PutMapping("/{recordId}")
