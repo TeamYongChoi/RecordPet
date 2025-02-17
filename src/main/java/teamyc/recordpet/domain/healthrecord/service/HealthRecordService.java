@@ -58,7 +58,7 @@ public class HealthRecordService {
         return result
                 .stream()
                 .map(MonthlyHealthRecordResponse::fromEntity)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public Page<HealthRecordResponse> findAllHealthRecords(Long petId, Pageable pageable) {
