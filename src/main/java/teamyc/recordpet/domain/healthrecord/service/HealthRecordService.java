@@ -3,6 +3,7 @@ package teamyc.recordpet.domain.healthrecord.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import teamyc.recordpet.domain.pet.entity.Pet;
 import teamyc.recordpet.domain.pet.repository.PetRepository;
 import teamyc.recordpet.global.exception.GlobalException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +47,13 @@ public class HealthRecordService {
         healthRecordRepository.save(healthRecord);
     }
 
+    public List<DailyHealthRecordResponse> findByDateAndPetId(Long petId, LocalDate date){
+        List<HealthRecord> healthRecords = healthRecordRepository.findByDateAndPetId(petId, date);
+        return healthRecords.stream()
+                .map(DailyHealthRecordResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public List<MonthlyHealthRecordResponse> findByMonthAndPetId(Long petId, int year, int month) {
         if (!petRepository.existsById(petId)) {
@@ -53,6 +62,7 @@ public class HealthRecordService {
 
 
         List<HealthRecord> result = healthRecordRepository.findByMonthAndPetId(petId, year, month);
+
         log.info("조회된 건강 기록 개수 : {}", result.size());
 
         return result

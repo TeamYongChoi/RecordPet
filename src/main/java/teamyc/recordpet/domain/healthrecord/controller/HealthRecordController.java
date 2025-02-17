@@ -5,14 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import teamyc.recordpet.domain.healthrecord.dto.HealthRecordCreateRequest;
-import teamyc.recordpet.domain.healthrecord.dto.HealthRecordResponse;
-import teamyc.recordpet.domain.healthrecord.dto.HealthRecordUpdateRequest;
-import teamyc.recordpet.domain.healthrecord.dto.MonthlyHealthRecordResponse;
+import teamyc.recordpet.domain.healthrecord.dto.*;
 import teamyc.recordpet.domain.healthrecord.service.HealthRecordService;
 import teamyc.recordpet.global.exception.CustomResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -30,12 +29,19 @@ public class HealthRecordController {
         return CustomResponse.success(null);
     }
 
+    @GetMapping("/day")
+    public CustomResponse<List<DailyHealthRecordResponse>> findHealthRecordByDate(
+            @PathVariable Long petId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        return CustomResponse.success(healthRecordService.findByDateAndPetId(petId, date));
+    }
+
     @GetMapping("/month")
     public CustomResponse<List<MonthlyHealthRecordResponse>> findHealthRecordByMonth(
             @PathVariable Long petId,
             @RequestParam int year,
-            @RequestParam int month
-    ) {
+            @RequestParam int month) {
         return CustomResponse.success(
                 healthRecordService.findByMonthAndPetId(petId, year, month));
     }
@@ -45,8 +51,7 @@ public class HealthRecordController {
             @PathVariable Long petId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,desc") String sort
-    ) {
+            @RequestParam(defaultValue = "id,desc") String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort.split(",")[0]).descending());
         Page<HealthRecordResponse> response = healthRecordService.findAllHealthRecords(petId, pageable);
 
@@ -57,7 +62,7 @@ public class HealthRecordController {
     public CustomResponse<Void> updateHealthRecord(
             @PathVariable Long petId,
             @PathVariable Long recordId,
-            @RequestBody HealthRecordUpdateRequest request){
+            @RequestBody HealthRecordUpdateRequest request) {
         healthRecordService.updateHealthRecord(petId, recordId, request);
         return CustomResponse.success(null);
     }
@@ -65,7 +70,7 @@ public class HealthRecordController {
     @DeleteMapping("/{recordId}")
     public CustomResponse<Void> deleteHealthRecord(
             @PathVariable Long petId,
-            @PathVariable Long recordId){
+            @PathVariable Long recordId) {
         healthRecordService.deleteHealthRecord(petId, recordId);
         return CustomResponse.success(null);
     }
@@ -74,7 +79,7 @@ public class HealthRecordController {
     public CustomResponse<Void> deleteHealthEvent(
             @PathVariable Long petId,
             @PathVariable Long recordId,
-            @PathVariable Long eventId){
+            @PathVariable Long eventId) {
         healthRecordService.deleteHealthEvent(petId, recordId, eventId);
         return CustomResponse.success(null);
     }
